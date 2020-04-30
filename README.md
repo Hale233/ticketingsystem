@@ -41,10 +41,10 @@
 
 ​     谁来写缓存？这里我们首先明确哪些操作会改变缓存：1.购票操作 2.退票操作。那么基于这个原则来考虑，写缓存的任务就交给购票和退票。也许购票和退票操作只占20%，而查询占80%，那么让查询来写看起来能更快速的写满，但实际上查询来写会出现问题，因为查询的整个流程是先查缓存，查不到就去遍历，如果此时同时有AB两线程查询1-2区间的余票，而于此同时C线程在购买1-2车间上的票，假设当前只有1张1-2的余票，那么有可能A后写入1进去，把B之前写入的0覆盖了，这样后续再有线程访问该区间时，直接从缓存中得到余票数为1，显然不正确。所以基于查询操作我们必须无锁来做的话，那么查询必不能去修改缓存。实际上假设我们有10个车站，那么排列起来，总共只有(1+9)*9/2=45种组合，那么理论上购票操作也很快能把缓存写满供查询访问，实际上经过测试统计出来查询操作缓存命中率为86%，效果很好。                                 
 
-![](https://raw.githubusercontent.com/haoheipi/picGo/master/img/20200430203804.png)
+![p1](https://raw.githubusercontent.com/haoheipi/picGo/master/img/20200430203804.png)
 ​        查询的整体流程如下图：
 
-![](https://raw.githubusercontent.com/haoheipi/picGo/master/img/20200430203925.png)
+![p2](https://raw.githubusercontent.com/haoheipi/picGo/master/img/20200430203925.png)
 
 
 
@@ -64,7 +64,7 @@
 
 ​     实际设计的购票、退票具体的流程如下：
 
-<img src="/Users/haoheipi/Downloads/未命名表单 (1).png" alt="未命名表单 (1)" style="zoom:50%;" />
+![[p3]](https://raw.githubusercontent.com/haoheipi/picGo/master/img/20200430204535.png)
 
 
 
